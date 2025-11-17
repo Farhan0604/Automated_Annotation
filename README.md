@@ -10,12 +10,12 @@ A simple offline tool that automatically annotates images using the YOLO11 model
 - Supports any image type
 
 ## Installation
-
+pip install -r requirements.txt
 
 ## Usage
 
 ### Annotate a single image:
-
+python main.py examples/loaf_cat.jpeg
 
 ### Output:
 - `output/annotated_yolo.jpg`
@@ -34,3 +34,4 @@ README.md
 
 ## Model
 The project uses the YOLO11m model (downloaded automatically).
+
