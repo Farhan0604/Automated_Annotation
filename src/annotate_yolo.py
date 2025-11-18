@@ -2,6 +2,10 @@ from ultralytics import YOLO
 import cv2
 
 class YOLOAnnotator:
+    """
+    A lightweight YOLO11-based annotator for detecting objects in images.
+    Automatically saves an annotated image and a JSON file with predictions.
+    """
     def __init__(self, model_name="yolo11m.pt"):
         print("[*] Loading YOLO11 model...")
         self.model = YOLO(model_name)
