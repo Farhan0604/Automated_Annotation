@@ -1,11 +1,17 @@
-# gui.py
+"""
+A simple Tkinter GUI tool for automatically annotating all images in a folder
+using the YOLO11 object detection model. The tool scans the selected directory,
+runs detection on each image, and saves both annotated images and JSON results
+in the output folder.
+"""
+
 import os
 import sys
 import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox
 
-# Fix import path
+
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.append(ROOT)
 
@@ -13,7 +19,7 @@ from src.annotate_yolo import YOLOAnnotator
 
 VALID_IMAGES = (".jpg", ".jpeg", ".png", ".bmp", ".webp")
 
-# GLOBAL YOLO INSTANCE (fix for only-one-image issue)
+
 YOLO_INSTANCE = YOLOAnnotator()
 
 
@@ -54,7 +60,7 @@ class AnnotatorGUI:
     def run_annotation(self, folder):
         self.log("Using preloaded YOLO model...")
 
-        annotator = YOLO_INSTANCE  # Use global YOLO (IMPORTANT FIX)
+        annotator = YOLO_INSTANCE 
 
         # Scan all images
         images = []
