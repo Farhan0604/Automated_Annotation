@@ -1,31 +1,40 @@
 # gui.py
 import os
+import sys
 import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox
+
+# Fix import path
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(ROOT)
+
 from src.annotate_yolo import YOLOAnnotator
 
 VALID_IMAGES = (".jpg", ".jpeg", ".png", ".bmp", ".webp")
+
+# GLOBAL YOLO INSTANCE (fix for only-one-image issue)
+YOLO_INSTANCE = YOLOAnnotator()
+
 
 class AnnotatorGUI:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("YOLO11 Auto Annotation Tool")
-        self.root.geometry("600x350")
+        self.root.geometry("650x400")
 
         self.folder_path = tk.StringVar()
 
-        tk.Label(self.root, text="YOLO11 Auto-Annotation", font=("Arial", 18)).pack(pady=10)
-
+        tk.Label(self.root, text="YOLO11 Auto-Annotation Tool", font=("Arial", 18)).pack(pady=10)
         tk.Label(self.root, text="Choose a folder containing images").pack()
 
         tk.Button(self.root, text="Browse Folder", command=self.browse_folder, width=20).pack(pady=5)
 
-        tk.Entry(self.root, textvariable=self.folder_path, width=60).pack(pady=5)
+        tk.Entry(self.root, textvariable=self.folder_path, width=70).pack(pady=5)
 
         tk.Button(self.root, text="Run Annotation", command=self.start_annotation, width=20).pack(pady=10)
 
-        self.output_box = tk.Text(self.root, height=10, width=70)
+        self.output_box = tk.Text(self.root, height=12, width=80)
         self.output_box.pack()
 
         self.root.mainloop()
@@ -43,10 +52,17 @@ class AnnotatorGUI:
         threading.Thread(target=self.run_annotation, args=(folder,), daemon=True).start()
 
     def run_annotation(self, folder):
-        self.log("Loading YOLO model...")
-        annotator = YOLOAnnotator()
+        self.log("Using preloaded YOLO model...")
 
-        images = [f for f in os.listdir(folder) if f.lower().endswith(VALID_IMAGES)]
+        annotator = YOLO_INSTANCE  # Use global YOLO (IMPORTANT FIX)
+
+        # Scan all images
+        images = []
+        for root, _, files in os.walk(folder):
+            for f in files:
+                if f.lower().endswith(VALID_IMAGES):
+                    images.append(os.path.join(root, f))
+
         if not images:
             self.log("No valid images found in folder.")
             return
@@ -54,19 +70,20 @@ class AnnotatorGUI:
         os.makedirs("output", exist_ok=True)
 
         total = len(images)
-        self.log(f"Found {total} images.")
+        self.log(f"Found {total} images to annotate...\n")
 
-        for i, img_name in enumerate(images, start=1):
-            img_path = os.path.join(folder, img_name)
+        # Loop through ALL images
+        for i, img_path in enumerate(images, start=1):
+            img_name = os.path.basename(img_path)
 
             out_img = f"output/{img_name}_annotated.jpg"
             out_json = f"output/{img_name}.json"
 
             count = annotator.annotate_image(img_path, out_img, out_json)
 
-            self.log(f"[{i}/{total}] {img_name} → {count} objects")
+            self.log(f"[{i}/{total}] {img_name} → {count} objects detected")
 
-        self.log("\n✔ DONE — All images processed.")
+        self.log("\n✔ DONE — All images processed successfully.")
 
     def log(self, text):
         self.output_box.insert(tk.END, text + "\n")
